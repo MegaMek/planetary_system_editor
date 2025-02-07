@@ -9,19 +9,28 @@ read_planetary_system <- function(file) {
   spectralType <- xml2::xml_text(xml2::xml_find_first(system_xml, "spectralType"))
   primarySlot <- as.numeric(xml2::xml_text(xml2::xml_find_first(system_xml, "primarySlot")))
   
+  planetary_system <- list(id = id,
+                           sucsId = sucsId,
+                           x = x,
+                           y = y,
+                           spectralType = spectralType,
+                           primarySlot = primarySlot)
+  
   system_events <- purrr::map(xml2::xml_find_all(system_xml, "event"),
                               read_event)
+  
+  if(!purrr::is_empty(system_events)) {
+    planetary_system$event <- system_events
+  }
   
   system_planets <- purrr::map(xml2::xml_find_all(system_xml, "planet"),
                                read_planet)
   
-  list(id = id,
-       sucsId = sucsId,
-       x = x,
-       y = y,
-       spectralType = spectralType,
-       primarySlot = primarySlot,
-       planet = system_planets)
+  if(!purrr::is_empty(system_planets)) {
+    planetary_system$planet <- system_planets
+  }
+  
+  return(planetary_system)
   
 }
 
@@ -31,29 +40,43 @@ read_planet <- function(planet_xml) {
   type <- xml2::xml_text(xml2::xml_find_first(planet_xml, "type"))
   orbitalDist <- as.numeric(xml2::xml_text(xml2::xml_find_first(planet_xml, "orbitalDist")))
   sysPos <- as.numeric(xml2::xml_text(xml2::xml_find_first(planet_xml, "sysPos")))
-  pressure <- xml2::xml_text(xml2::xml_find_first(planet_xml, "pressure"))
-  atmosphere <- xml2::xml_text(xml2::xml_find_first(planet_xml, "atmosphere"))
-  composition <- xml2::xml_text(xml2::xml_find_first(planet_xml, "composition"))
-  gravity <- as.numeric(xml2::xml_text(xml2::xml_find_first(planet_xml, "gravity")))
-  dayLength <- as.numeric(xml2::xml_text(xml2::xml_find_first(planet_xml, "dayLength")))
-  diameter <- as.numeric(xml2::xml_text(xml2::xml_find_first(planet_xml, "diameter")))
-  density <- as.numeric(xml2::xml_text(xml2::xml_find_first(planet_xml, "density")))
-  
-  planet_events <- purrr::map(xml2::xml_find_all(planet_xml, "event"),
-                              read_event)
   
   planet <- list(name = name,
                  type = type,
                  orbital_dist = orbitalDist,
-                 sysPos = sysPos,
-                 pressure = pressure,
-                 atmosphere = atmosphere,
-                 composition = composition,
-                 gravity = gravity,
-                 dayLength = dayLength,
-                 diameter = diameter,
-                 density = density,
-                 event = planet_events)
+                 sysPos = sysPos)
+  
+  # these ones may or may not be present
+  pressure <- xml2::xml_text(xml2::xml_find_first(planet_xml, "pressure"))
+  if(!is.na(pressure)) { planet$pressure <- pressure }
+  
+  atmosphere <- xml2::xml_text(xml2::xml_find_first(planet_xml, "atmosphere"))
+  if(!is.na(atmosphere)) { planet$atmosphere <- atmosphere }
+  
+  composition <- xml2::xml_text(xml2::xml_find_first(planet_xml, "composition"))
+  if(!is.na(composition)) { planet$composition <- composition }
+  
+  gravity <- as.numeric(xml2::xml_text(xml2::xml_find_first(planet_xml, "gravity")))
+  if(!is.na(gravity)) { planet$gravity <- gravity }
+  
+  dayLength <- as.numeric(xml2::xml_text(xml2::xml_find_first(planet_xml, "dayLength")))
+  if(!is.na(dayLength)) { planet$dayLength <- dayLength }
+  
+  diameter <- as.numeric(xml2::xml_text(xml2::xml_find_first(planet_xml, "diameter")))
+  if(!is.na(diameter)) { planet$diameter <- diameter }
+  
+  density <- as.numeric(xml2::xml_text(xml2::xml_find_first(planet_xml, "density")))
+  if(!is.na(density)) { planet$density <- density }
+  
+  # now look for planetary events and add them
+  planet_events <- purrr::map(xml2::xml_find_all(planet_xml, "event"),
+                              read_event)
+  
+  if(!purrr::is_empty(planet_events)) {
+    planet$event = planet_events
+  }
+  
+  return(planet)
   
 }
 
