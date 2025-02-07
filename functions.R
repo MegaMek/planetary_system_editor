@@ -1,6 +1,6 @@
 read_planetary_system <- function(file) {
   
-  system_xml <- xml2::read_xml("example_system.xml")
+  system_xml <- xml2::read_xml(file)
   
   id <- xml2::xml_text(xml2::xml_find_first(system_xml, "id"))
   sucsId <- as.numeric(xml2::xml_text(xml2::xml_find_first(system_xml, "sucsId")))
