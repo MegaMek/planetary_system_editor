@@ -98,11 +98,9 @@ read_event <- function(events_xml) {
   
 }
 
-# you can use map on xml_nodesets
-#purrr::map(system_planets, function(x) {xml2::xml_text(xml2::xml_find_first(x, "name"))})
-
 # you can grab attributes like this.
 #xml2::xml_attr(xml2::xml_find_first(system_xml, "spectralType"), "source")
 
-cat(yaml::as.yaml(read_planetary_system("test"), indent.mapping.sequence = TRUE, precision = 6))
+# print to yaml just like this, except there are a few oddities
+#cat(yaml::as.yaml(read_planetary_system("test"), indent.mapping.sequence = TRUE, precision = 6))
 
