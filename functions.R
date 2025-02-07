@@ -70,6 +70,9 @@ read_planet <- function(planet_xml) {
   density <- as.numeric(xml2::xml_text(xml2::xml_find_first(planet_xml, "density")))
   if(!is.na(density)) { planet$density <- density }
   
+  ring <- xml2::xml_text(xml2::xml_find_first(planet_xml, "ring"))
+  if(!is.na(ring)) { planet$ring <- ring }
+  
   # now look for planetary events and add them
   planet_events <- purrr::map(xml2::xml_find_all(planet_xml, "event"),
                               read_event)
