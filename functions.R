@@ -128,5 +128,8 @@ read_satellite <- function(satellite_xml) {
 #xml2::xml_attr(xml2::xml_find_first(system_xml, "spectralType"), "source")
 
 # print to yaml just like this, except there are a few oddities
-cat(yaml::as.yaml(read_planetary_system("example_system.xml"), indent.mapping.sequence = TRUE, precision = 6))
+#cat(yaml::as.yaml(read_planetary_system("example_system.xml"), indent.mapping.sequence = TRUE, precision = 6))
 
+
+#yaml::write_yaml(read_planetary_system("example_system.xml"), file = "test.yml", indent.mapping.sequence = TRUE, precision = 6)
+#x <- yaml::read_yaml("test.yml")
