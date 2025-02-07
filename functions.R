@@ -73,6 +73,17 @@ read_planet <- function(planet_xml) {
   ring <- xml2::xml_text(xml2::xml_find_first(planet_xml, "ring"))
   if(!is.na(ring)) { planet$ring <- ring }
   
+  smallMoons <- as.numeric(xml2::xml_text(xml2::xml_find_first(planet_xml, "smallMoons")))
+  if(!is.na(smallMoons)) { planet$smallMoons <- smallMoons }
+  
+  # check for satellites
+  satellites <- purrr::map(xml2::xml_find_all(planet_xml, "satellite"),
+                              read_satellite)
+  
+  if(!purrr::is_empty(satellites)) {
+    planet$satellite = satellites
+  }
+  
   # now look for planetary events and add them
   planet_events <- purrr::map(xml2::xml_find_all(planet_xml, "event"),
                               read_event)
@@ -100,6 +111,16 @@ read_event <- function(events_xml) {
   })
   
   return(values)
+  
+}
+
+read_satellite <- function(satellite_xml) {
+  
+  name <- xml2::xml_text(xml2::xml_find_first(satellite_xml, "name"))
+  size <- xml2::xml_text(xml2::xml_find_first(satellite_xml, "size"))
+  icon <- xml2::xml_text(xml2::xml_find_first(satellite_xml, "icon"))
+  
+  return(list(name = name, size = size, icon = icon))
   
 }
 
