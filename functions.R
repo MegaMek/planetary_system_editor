@@ -40,11 +40,13 @@ read_planet <- function(planet_xml) {
   type <- xml2::xml_text(xml2::xml_find_first(planet_xml, "type"))
   orbitalDist <- as.numeric(xml2::xml_text(xml2::xml_find_first(planet_xml, "orbitalDist")))
   sysPos <- as.numeric(xml2::xml_text(xml2::xml_find_first(planet_xml, "sysPos")))
+  icon <- xml2::xml_text(xml2::xml_find_first(planet_xml, "icon"))
   
   planet <- list(name = name,
                  type = type,
                  orbital_dist = orbitalDist,
-                 sysPos = sysPos)
+                 sysPos = sysPos,
+                 icon = icon)
   
   # these ones may or may not be present
   pressure <- xml2::xml_text(xml2::xml_find_first(planet_xml, "pressure"))
@@ -102,5 +104,5 @@ read_event <- function(events_xml) {
 #xml2::xml_attr(xml2::xml_find_first(system_xml, "spectralType"), "source")
 
 # print to yaml just like this, except there are a few oddities
-#cat(yaml::as.yaml(read_planetary_system("test"), indent.mapping.sequence = TRUE, precision = 6))
+cat(yaml::as.yaml(read_planetary_system("example_system.xml"), indent.mapping.sequence = TRUE, precision = 6))
 
