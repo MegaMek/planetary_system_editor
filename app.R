@@ -9,13 +9,17 @@
 
 library(shiny)
 library(megamekR)
+library(dplyr)
 
 # Define UI for application that draws a histogram
 ui <- fluidPage(
 
   titlePanel("Planetary Data Editor"),
   fileInput("upload", "Upload a YAML file", accept = c("yml")),
-  tableOutput('table')
+  tableOutput('system'),
+  tableOutput('system_events'),
+  tableOutput('planets'),
+  tableOutput('prime_planet_events')
 )
 
 # Define server logic required to draw a histogram
@@ -25,8 +29,23 @@ server <- function(input, output) {
     read_planetary_data(input$upload$datapath)
   })
   
-  output$table <- renderTable({
+  output$system <- renderTable({
     planetary_data()$system
+  })
+  
+  output$system_events <- renderTable({
+    planetary_data()$system_events |>
+      mutate(date = as.character(date))
+  })
+  
+  output$planets <- renderTable({
+    planetary_data()$planets |>
+      select(!desc)
+  })
+  
+  output$prime_planet_events <- renderTable({
+    planetary_data()$planetary_events[[planetary_data()$system$primarySlot]] |>
+      mutate(date = as.character(date))
   })
 }
 
