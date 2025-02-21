@@ -10,13 +10,14 @@
 library(shiny)
 library(megamekR)
 library(dplyr)
+library(rhandsontable)
 
 # Define UI for application that draws a histogram
 ui <- fluidPage(
 
   titlePanel("Planetary Data Editor"),
   fileInput("upload", "Upload a YAML file", accept = c("yml")),
-  tableOutput('system'),
+  rHandsontableOutput('system'),
   tableOutput('system_events'),
   tableOutput('planets'),
   tableOutput('prime_planet_events')
@@ -29,8 +30,11 @@ server <- function(input, output) {
     read_planetary_data(input$upload$datapath)
   })
   
-  output$system <- renderTable({
-    planetary_data()$system
+  output$system <- renderRHandsontable({
+    rhandsontable(planetary_data()$system) %>%
+      hot_col(col = c("id", "sucsId", "xcood", "ycood"), readOnly = TRUE) %>%
+      hot_col(col = c("source_spectralType", "source_primarySlot"), type = "text") %>%
+      hot_context_menu(allowRowEdit = FALSE, allowColEdit = FALSE)
   })
   
   output$system_events <- renderTable({
