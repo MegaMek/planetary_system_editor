@@ -17,6 +17,7 @@ ui <- fluidPage(
 
   titlePanel("Planetary Data Editor"),
   fileInput("upload", "Upload a YAML file", accept = c("yml")),
+  downloadButton("download"),
   rHandsontableOutput('system'),
   tableOutput('system_events'),
   tableOutput('planets'),
@@ -51,6 +52,15 @@ server <- function(input, output) {
     planetary_data()$planetary_events[[planetary_data()$system$primarySlot]] |>
       mutate(date = as.character(date))
   })
+  
+  output$download <- downloadHandler(
+    filename = function() {
+      "test.yml"
+    },
+    content = function(file) {
+      write_planetary_data(planetary_data(), file)
+    }
+  )
 }
 
 # Run the application 
