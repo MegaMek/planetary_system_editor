@@ -58,7 +58,9 @@ server <- function(input, output) {
       "test.yml"
     },
     content = function(file) {
-      write_planetary_data(planetary_data(), file)
+      planetary_system <- planetary_data()
+      planetary_system$system <- as_tibble(hot_to_r(input$system))
+      write_planetary_data(planetary_system, file)
     }
   )
 }
