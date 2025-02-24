@@ -7,21 +7,32 @@
 #    https://shiny.posit.co/
 #
 
+library(bslib)
 library(shiny)
 library(megamekR)
 library(dplyr)
 library(rhandsontable)
 
 # Define UI for application that draws a histogram
-ui <- fluidPage(
-
-  titlePanel("Planetary Data Editor"),
-  fileInput("upload", "Upload a YAML file", accept = c("yml")),
-  downloadButton("download"),
-  rHandsontableOutput('system'),
-  rHandsontableOutput('system_events'),
-  rHandsontableOutput('planets'),
-  rHandsontableOutput('prime_planet_events')
+ui <- page_sidebar(
+  title = "Planetary Data Editor",
+  sidebar = sidebar(
+    fileInput("upload", "Upload a YAML file", accept = c("yml")),
+    downloadButton("download")
+  ),
+  tabsetPanel(
+    tabPanel("Planetary System Information",
+             rHandsontableOutput('system'),
+             h2("Planetary system events"),
+             rHandsontableOutput('system_events')
+    ),
+    tabPanel("Base Planet Information",
+             rHandsontableOutput('planets')
+    ),
+    tabPanel("Primary Planet Events",
+             rHandsontableOutput('prime_planet_events')
+    )
+  )
 )
 
 # Define server logic required to draw a histogram
