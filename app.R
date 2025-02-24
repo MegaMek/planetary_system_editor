@@ -19,8 +19,8 @@ ui <- fluidPage(
   fileInput("upload", "Upload a YAML file", accept = c("yml")),
   downloadButton("download"),
   rHandsontableOutput('system'),
-  tableOutput('system_events'),
-  tableOutput('planets'),
+  rHandsontableOutput('system_events'),
+  rHandsontableOutput('planets'),
   tableOutput('prime_planet_events')
 )
 
@@ -39,14 +39,19 @@ server <- function(input, output) {
       hot_context_menu(allowRowEdit = FALSE, allowColEdit = FALSE)
   })
   
-  output$system_events <- renderTable({
-    planetary_data()$system_events |>
-      mutate(date = as.character(date))
+  output$system_events <- renderRHandsontable({
+    planetary_data()$system_events %>%
+      mutate(date = as.character(date)) %>%
+      rhandsontable() %>%
+      hot_col(col = c("source_nadirCharge", "source_zenithCharge"), type = "text") %>%
+      hot_context_menu(allowRowEdit = TRUE)
   })
   
-  output$planets <- renderTable({
-    planetary_data()$planets |>
-      select(!desc)
+  output$planets <- renderRHandsontable({
+    planetary_data()$planets %>%
+      select(!desc) %>%
+      mutate(atmosphere = factor(atmosphere)) %>%
+      rhandsontable()
   })
   
   output$prime_planet_events <- renderTable({
