@@ -21,7 +21,7 @@ ui <- fluidPage(
   rHandsontableOutput('system'),
   rHandsontableOutput('system_events'),
   rHandsontableOutput('planets'),
-  tableOutput('prime_planet_events')
+  rHandsontableOutput('prime_planet_events')
 )
 
 # Define server logic required to draw a histogram
@@ -35,7 +35,6 @@ server <- function(input, output) {
     planetary_data()$system %>%
       rhandsontable() %>%
       hot_col(col = c("id", "sucsId", "xcood", "ycood"), readOnly = TRUE) %>%
-      hot_col(col = c("source_spectralType", "source_primarySlot"), type = "text") %>%
       hot_context_menu(allowRowEdit = FALSE, allowColEdit = FALSE)
   })
   
@@ -43,20 +42,22 @@ server <- function(input, output) {
     planetary_data()$system_events %>%
       mutate(date = as.character(date)) %>%
       rhandsontable() %>%
-      hot_col(col = c("source_nadirCharge", "source_zenithCharge"), type = "text") %>%
-      hot_context_menu(allowRowEdit = TRUE)
+      hot_context_menu(allowRowEdit = TRUE, allowColEdit = FALSE)
   })
   
   output$planets <- renderRHandsontable({
     planetary_data()$planets %>%
       select(!desc) %>%
       mutate(atmosphere = factor(atmosphere)) %>%
-      rhandsontable()
+      rhandsontable() %>%
+      hot_context_menu(allowRowEdit = TRUE, allowColEdit = FALSE)
   })
   
-  output$prime_planet_events <- renderTable({
-    planetary_data()$planetary_events[[planetary_data()$system$primarySlot]] |>
-      mutate(date = as.character(date))
+  output$prime_planet_events <- renderRHandsontable({
+    planetary_data()$planetary_events[[planetary_data()$system$primarySlot]] %>%
+      mutate(date = as.character(date)) %>%
+      rhandsontable() %>%
+      hot_context_menu(allowRowEdit = TRUE, allowColEdit = FALSE)
   })
   
   output$download <- downloadHandler(
