@@ -32,7 +32,8 @@ server <- function(input, output) {
   })
   
   output$system <- renderRHandsontable({
-    rhandsontable(planetary_data()$system) %>%
+    planetary_data()$system %>%
+      rhandsontable() %>%
       hot_col(col = c("id", "sucsId", "xcood", "ycood"), readOnly = TRUE) %>%
       hot_col(col = c("source_spectralType", "source_primarySlot"), type = "text") %>%
       hot_context_menu(allowRowEdit = FALSE, allowColEdit = FALSE)
