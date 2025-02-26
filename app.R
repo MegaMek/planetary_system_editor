@@ -20,20 +20,30 @@ ui <- page_sidebar(
     fileInput("upload", "Upload a YAML file", accept = c("yml")),
     downloadButton("download")
   ),
-  tabsetPanel(
-    tabPanel("Planetary System Information",
-             rHandsontableOutput('system'),
-             h2("Planetary system events"),
-             rHandsontableOutput('system_events')
-    ),
-    tabPanel("Base Planet Information",
-             rHandsontableOutput('planets')
-    ),
-    tabPanel("Primary Planet Events",
-             rHandsontableOutput('prime_planet_events')
-    )
+  tabsetPanel(id = "tabs",
+              tabPanel("Base Information",
+                       card(
+                         card_header("Overall System Information"),
+                         rHandsontableOutput('system')
+                       ),
+                       card(
+                         card_header("Base Planet Information"),
+                         rHandsontableOutput('planets'),
+                       )
+                       ))
   )
-)
+  #  uiOutput("planetTabs")
+  #   tabPanel("Planetary System Information",
+  #            rHandsontableOutput('system'),
+  #            h2("Planetary system events"),
+  #            rHandsontableOutput('system_events')
+  #   ),
+  #   tabPanel("Base Planet Information",
+  #            rHandsontableOutput('planets')
+  #   ),
+  #   tabPanel("Primary Planet Events",
+  #            rHandsontableOutput('prime_planet_events')
+  #   )
 
 # Define server logic required to draw a histogram
 server <- function(input, output) {
@@ -49,13 +59,47 @@ server <- function(input, output) {
       hot_context_menu(allowRowEdit = FALSE, allowColEdit = FALSE)
   })
   
-  output$system_events <- renderRHandsontable({
-    planetary_data()$system_events %>%
-      mutate(date = as.character(date)) %>%
-      rhandsontable() %>%
-      hot_context_menu(allowRowEdit = TRUE, allowColEdit = FALSE)
+  observeEvent(input$upload, {
+    n <- length(planetary_data()$planetary_events)
+    for(i in 1:n) {
+      events <- planetary_data()$planetary_events[[i]]
+      landmasses <- planetary_data()$landmasses[[i]]
+      satellites <- planetary_data()$satellites[[i]]
+      if(!is.null(landmasses)) {
+        landmasses <- landmasses %>%
+          rhandsontable() %>%
+          hot_table(stretchH = "all") %>%
+          hot_context_menu(allowRowEdit = TRUE, allowColEdit = FALSE)
+      }
+      if(!is.null(satellites)) {
+        satellites <- satellites %>%
+          rhandsontable() %>%
+          hot_table(stretchH = "all") %>%
+          hot_context_menu(allowRowEdit = TRUE, allowColEdit = FALSE)
+      }
+      if(!is.null(events)) {
+        events <- events %>%
+          mutate(date = as.character(date)) %>%
+          rhandsontable() %>%
+          hot_table(stretchH = "all") %>%
+          hot_context_menu(allowRowEdit = TRUE, allowColEdit = FALSE)
+      }
+        insertTab(inputId = "tabs",
+                  tabPanel(planetary_data()$planets$name[i], 
+                           card(card_header("Landmasses"), landmasses), 
+                           card(card_header("Satellites"), satellites), 
+                           card(card_header("Planetary Events"), events)))
+      
+    }
   })
   
+  # output$system_events <- renderRHandsontable({
+  #   planetary_data()$system_events %>%
+  #     mutate(date = as.character(date)) %>%
+  #     rhandsontable() %>%
+  #     hot_context_menu(allowRowEdit = TRUE, allowColEdit = FALSE)
+  # })
+  # 
   output$planets <- renderRHandsontable({
     planetary_data()$planets %>%
       select(!desc) %>%
@@ -63,13 +107,13 @@ server <- function(input, output) {
       rhandsontable() %>%
       hot_context_menu(allowRowEdit = TRUE, allowColEdit = FALSE)
   })
-  
-  output$prime_planet_events <- renderRHandsontable({
-    planetary_data()$planetary_events[[planetary_data()$system$primarySlot]] %>%
-      mutate(date = as.character(date)) %>%
-      rhandsontable() %>%
-      hot_context_menu(allowRowEdit = TRUE, allowColEdit = FALSE)
-  })
+  # 
+  # output$prime_planet_events <- renderRHandsontable({
+  #   planetary_data()$planetary_events[[planetary_data()$system$primarySlot]] %>%
+  #     mutate(date = as.character(date)) %>%
+  #     rhandsontable() %>%
+  #     hot_context_menu(allowRowEdit = TRUE, allowColEdit = FALSE)
+  # })
   
   output$download <- downloadHandler(
     filename = function() {
