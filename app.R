@@ -30,23 +30,15 @@ ui <- page_sidebar(
                          eDTOutput('system')
                        ),
                        card(
+                         card_header("Planetary System Events"),
+                         eDTOutput('systemEvents')
+                       ),
+                       card(
                          card_header("Base Planet Information"),
                          eDTOutput('planets'),
                        )
                        ))
   )
-  #  uiOutput("planetTabs")
-  #   tabPanel("Planetary System Information",
-  #            rHandsontableOutput('system'),
-  #            h2("Planetary system events"),
-  #            rHandsontableOutput('system_events')
-  #   ),
-  #   tabPanel("Base Planet Information",
-  #            rHandsontableOutput('planets')
-  #   ),
-  #   tabPanel("Primary Planet Events",
-  #            rHandsontableOutput('prime_planet_events')
-  #   )
 
 # Define server logic required to draw a histogram
 server <- function(input, output) {
@@ -57,6 +49,7 @@ server <- function(input, output) {
   })
   
   modifiedPlanetarySystem <- reactiveVal()
+  modifiedSystemEvents <- reactiveVal()
   modifiedPlanets <- reactiveVal()
   modifiedLandmasses <- reactiveVal()
   modifiedSatellites <- reactiveVal()
@@ -75,6 +68,14 @@ server <- function(input, output) {
                                                buttons = list("undo", "redo", "save")),
                                 editable = list(target = "cell",
                                                 disable = list(columns = 1:4))))
+    modifiedSystemEvents(eDT(id = 'systemEvents', 
+                             data = planetary_data()$system_events, 
+                             canDeleteRow = FALSE,
+                             options = list(dom = 'Bt', 
+                                            keys = TRUE,
+                                            ordering = FALSE,
+                                            autoFill = list(update =FALSE, focus = "focus"),
+                                            buttons = list("add","undo", "redo", "save"))))
     modifiedPlanets(eDT(id = 'planets', 
                         data = planetary_data()$planets,
                         options = list(dom = 'Bt', 
@@ -161,6 +162,7 @@ server <- function(input, output) {
     content = function(file) {
       planetary_system <- planetary_data()
       planetary_system$system <- modifiedPlanetarySystem()$result()
+      planetary_system$system_events <- modifiedSystemEvents()$result()
       planetary_system$planets <- modifiedPlanets()$result()
       for(i in 1:length(planetary_system$landmasses)) {
         if(is.null(modifiedLandmasses()[[i]])) {
