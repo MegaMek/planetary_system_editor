@@ -61,9 +61,23 @@ server <- function(input, output) {
   
   observe({
     req(planetary_data())
-    modifiedPlanetarySystem(eDT(id = 'system', data = planetary_data()$system))
+    modifiedPlanetarySystem(eDT(id = 'system', 
+                                data = planetary_data()$system, 
+                                canDeleteRow = FALSE,
+                                options = list(dom = 'Bt', 
+                                               keys = TRUE,
+                                               ordering = FALSE,
+                                               autoFill = list(update =FALSE, focus = "focus"),
+                                               buttons = list("undo", "redo", "save")),
+                                editable = list(target = "cell",
+                                                disable = list(columns = 1:4))))
     modifiedPlanets(eDT(id = 'planets', 
-                        data = planetary_data()$planets |> select(!desc)))
+                        data = planetary_data()$planets,
+                        options = list(dom = 'Bt', 
+                                       keys = TRUE,
+                                       ordering = FALSE,
+                                       autoFill = list(update =FALSE, focus = "focus"),
+                                       buttons = list("add","undo", "redo", "save"))))
   })
   
   observeEvent(input$upload, {
