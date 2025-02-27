@@ -27,7 +27,7 @@ ui <- page_sidebar(
               tabPanel("Base Information",
                        card(
                          card_header("Overall System Information"),
-                         rHandsontableOutput('system')
+                         eDTOutput('system')
                        ),
                        card(
                          card_header("Base Planet Information"),
@@ -56,18 +56,14 @@ server <- function(input, output) {
     read_planetary_data(input$upload$datapath)
   })
   
-  output$system <- renderRHandsontable({
-    planetary_data()$system %>%
-      rhandsontable() %>%
-      hot_col(col = c("id", "sucsId", "xcood", "ycood"), readOnly = TRUE) %>%
-      hot_context_menu(allowRowEdit = FALSE, allowColEdit = FALSE)
-  })
-  
+  modifiedPlanetarySystem <- reactiveVal()
   modifiedPlanets <- reactiveVal()
   
   observe({
     req(planetary_data())
-    modifiedPlanets(eDT(id = 'planets', data = planetary_data()$planets))
+    modifiedPlanetarySystem(eDT(id = 'system', data = planetary_data()$system))
+    modifiedPlanets(eDT(id = 'planets', 
+                        data = planetary_data()$planets |> select(!desc)))
   })
   
   observeEvent(input$upload, {
@@ -139,7 +135,7 @@ server <- function(input, output) {
     },
     content = function(file) {
       planetary_system <- planetary_data()
-      planetary_system$system <- as_tibble(hot_to_r(input$system))
+      planetary_system$system <- modifiedPlanetarySystem()$result()
       planetary_system$planets <- modifiedPlanets()$result()
       write_planetary_data(planetary_system, file)
     }
