@@ -69,8 +69,7 @@ server <- function(input, output) {
                                 editable = list(target = "cell",
                                                 disable = list(columns = 1:4))))
     modifiedSystemEvents(eDT(id = 'systemEvents', 
-                             data = planetary_data()$system_events, 
-                             canDeleteRow = FALSE,
+                             data = planetary_data()$system_events,
                              options = list(dom = 'Bt', 
                                             keys = TRUE,
                                             ordering = FALSE,
