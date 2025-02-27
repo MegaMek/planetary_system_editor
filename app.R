@@ -58,6 +58,7 @@ server <- function(input, output) {
   
   modifiedPlanetarySystem <- reactiveVal()
   modifiedPlanets <- reactiveVal()
+  modifiedLandmasses <- reactiveVal()
   
   observe({
     req(planetary_data())
@@ -78,6 +79,26 @@ server <- function(input, output) {
                                        ordering = FALSE,
                                        autoFill = list(update =FALSE, focus = "focus"),
                                        buttons = list("add","undo", "redo", "save"))))
+    
+    landmasses <- list()
+    for(i in 1:length(planetary_data()$landmasses)) {
+      if(!is.null(planetary_data()$landmasses[[i]])) {
+        lm <- eDT(id = paste("landmass", i, sep=""),
+                  data = planetary_data()$landmasses[[i]],
+                  options = list(dom = 'Bt', 
+                                 keys = TRUE,
+                                 ordering = FALSE,
+                                 autoFill = list(update =FALSE, focus = "focus"),
+                                 buttons = list("add","undo", "redo", "save")))
+        landmasses[[paste("landmass", i, sep="")]] <- lm
+      } else {
+        landmasses[paste("landmass", i, sep="")] <- list(NULL)
+      }
+      
+    }
+    
+    modifiedLandmasses(landmasses)
+    
   })
   
   observeEvent(input$upload, {
@@ -90,14 +111,7 @@ server <- function(input, output) {
     n <- length(planetary_data()$planetary_events)
     for(i in 1:n) {
       events <- planetary_data()$planetary_events[[i]]
-      landmasses <- planetary_data()$landmasses[[i]]
       satellites <- planetary_data()$satellites[[i]]
-      if(!is.null(landmasses)) {
-        landmasses <- landmasses %>%
-          rhandsontable() %>%
-          hot_table(stretchH = "all") %>%
-          hot_context_menu(allowRowEdit = TRUE, allowColEdit = FALSE)
-      }
       if(!is.null(satellites)) {
         satellites <- satellites %>%
           rhandsontable() %>%
@@ -113,35 +127,12 @@ server <- function(input, output) {
       }
       insertTab(inputId = "tabs",
                 tabPanel(planetary_data()$planets$name[i], 
-                         card(card_header("Landmasses"), landmasses), 
+                         card(card_header("Landmasses"),  eDTOutput(paste("landmass", i, sep=""))), 
                          card(card_header("Satellites"), satellites), 
                          card(card_header("Planetary Events"), events)))
       tab_names <- c(tab_names, planetary_data()$planets$name[i])
     }
   })
-  
-  # output$system_events <- renderRHandsontable({
-  #   planetary_data()$system_events %>%
-  #     mutate(date = as.character(date)) %>%
-  #     rhandsontable() %>%
-  #     hot_context_menu(allowRowEdit = TRUE, allowColEdit = FALSE)
-  # })
-  # 
-  
-  #output$planets <- renderRHandsontable({
-  #  planetary_data()$planets %>%
-  #    select(!desc) %>%
-  #    mutate(atmosphere = factor(atmosphere)) %>%
-  #    rhandsontable() %>%
-  #    hot_context_menu(allowRowEdit = TRUE, allowColEdit = FALSE)
-  #})
-  # 
-  # output$prime_planet_events <- renderRHandsontable({
-  #   planetary_data()$planetary_events[[planetary_data()$system$primarySlot]] %>%
-  #     mutate(date = as.character(date)) %>%
-  #     rhandsontable() %>%
-  #     hot_context_menu(allowRowEdit = TRUE, allowColEdit = FALSE)
-  # })
   
   output$download <- downloadHandler(
     filename = function() {
@@ -151,6 +142,13 @@ server <- function(input, output) {
       planetary_system <- planetary_data()
       planetary_system$system <- modifiedPlanetarySystem()$result()
       planetary_system$planets <- modifiedPlanets()$result()
+      for(i in 1:length(planetary_system$landmasses)) {
+        if(is.null(modifiedLandmasses()[[i]])) {
+          planetary_system$landmasses[i] <- list(NULL)
+        } else {
+          planetary_system$landmasses[[i]] <- modifiedLandmasses()[[i]]$result()
+        }
+      }
       write_planetary_data(planetary_system, file)
     }
   )
