@@ -12,6 +12,9 @@ library(shiny)
 library(megamekR)
 library(dplyr)
 library(rhandsontable)
+library(editbl)
+
+tab_names <- c()
 
 # Define UI for application that draws a histogram
 ui <- page_sidebar(
@@ -28,7 +31,7 @@ ui <- page_sidebar(
                        ),
                        card(
                          card_header("Base Planet Information"),
-                         rHandsontableOutput('planets'),
+                         eDTOutput('planets'),
                        )
                        ))
   )
@@ -47,6 +50,7 @@ ui <- page_sidebar(
 
 # Define server logic required to draw a histogram
 server <- function(input, output) {
+
   planetary_data <- reactive({
     req(input$upload)
     read_planetary_data(input$upload$datapath)
@@ -59,7 +63,20 @@ server <- function(input, output) {
       hot_context_menu(allowRowEdit = FALSE, allowColEdit = FALSE)
   })
   
+  modifiedPlanets <- reactiveVal()
+  
+  observe({
+    req(planetary_data())
+    modifiedPlanets(eDT(id = 'planets', data = planetary_data()$planets))
+  })
+  
   observeEvent(input$upload, {
+    
+    # remove old tabs
+    for(tab_name in tab_names) {
+      removeTab(inputId = "tabs", target = tab_name)
+    }
+    tab_names <- c()
     n <- length(planetary_data()$planetary_events)
     for(i in 1:n) {
       events <- planetary_data()$planetary_events[[i]]
@@ -84,12 +101,12 @@ server <- function(input, output) {
           hot_table(stretchH = "all") %>%
           hot_context_menu(allowRowEdit = TRUE, allowColEdit = FALSE)
       }
-        insertTab(inputId = "tabs",
-                  tabPanel(planetary_data()$planets$name[i], 
-                           card(card_header("Landmasses"), landmasses), 
-                           card(card_header("Satellites"), satellites), 
-                           card(card_header("Planetary Events"), events)))
-      
+      insertTab(inputId = "tabs",
+                tabPanel(planetary_data()$planets$name[i], 
+                         card(card_header("Landmasses"), landmasses), 
+                         card(card_header("Satellites"), satellites), 
+                         card(card_header("Planetary Events"), events)))
+      tab_names <- c(tab_names, planetary_data()$planets$name[i])
     }
   })
   
@@ -100,13 +117,14 @@ server <- function(input, output) {
   #     hot_context_menu(allowRowEdit = TRUE, allowColEdit = FALSE)
   # })
   # 
-  output$planets <- renderRHandsontable({
-    planetary_data()$planets %>%
-      select(!desc) %>%
-      mutate(atmosphere = factor(atmosphere)) %>%
-      rhandsontable() %>%
-      hot_context_menu(allowRowEdit = TRUE, allowColEdit = FALSE)
-  })
+  
+  #output$planets <- renderRHandsontable({
+  #  planetary_data()$planets %>%
+  #    select(!desc) %>%
+  #    mutate(atmosphere = factor(atmosphere)) %>%
+  #    rhandsontable() %>%
+  #    hot_context_menu(allowRowEdit = TRUE, allowColEdit = FALSE)
+  #})
   # 
   # output$prime_planet_events <- renderRHandsontable({
   #   planetary_data()$planetary_events[[planetary_data()$system$primarySlot]] %>%
@@ -122,6 +140,7 @@ server <- function(input, output) {
     content = function(file) {
       planetary_system <- planetary_data()
       planetary_system$system <- as_tibble(hot_to_r(input$system))
+      planetary_system$planets <- modifiedPlanets()$result()
       write_planetary_data(planetary_system, file)
     }
   )
