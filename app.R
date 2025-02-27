@@ -60,6 +60,7 @@ server <- function(input, output) {
   modifiedPlanets <- reactiveVal()
   modifiedLandmasses <- reactiveVal()
   modifiedSatellites <- reactiveVal()
+  modifiedPlanetaryEvents <- reactiveVal()
   
   
   observe({
@@ -116,6 +117,23 @@ server <- function(input, output) {
     }
     modifiedSatellites(satellites)
     
+    planetary_events <- list()
+    for(i in 1:length(planetary_data()$planetary_events)) {
+      if(!is.null(planetary_data()$planetary_events[[i]])) {
+        pevents <- eDT(id = paste("planetary_events", i, sep=""),
+                   data = planetary_data()$planetary_events[[i]],
+                   options = list(dom = 'Bt', 
+                                  keys = TRUE,
+                                  ordering = FALSE,
+                                  autoFill = list(update =FALSE, focus = "focus"),
+                                  buttons = list("add","undo", "redo", "save")))
+        planetary_events[[paste("planetary_events", i, sep="")]] <- pevents
+      } else {
+        planetary_events[paste("planetary_events", i, sep="")] <- list(NULL)
+      }
+    }
+    modifiedPlanetaryEvents(planetary_events)
+    
   })
   
   observeEvent(input$upload, {
@@ -125,21 +143,13 @@ server <- function(input, output) {
       removeTab(inputId = "tabs", target = tab_name)
     }
     tab_names <- c()
-    n <- length(planetary_data()$planetary_events)
+    n <- nrow(planetary_data()$planets)
     for(i in 1:n) {
-      events <- planetary_data()$planetary_events[[i]]
-      if(!is.null(events)) {
-        events <- events %>%
-          mutate(date = as.character(date)) %>%
-          rhandsontable() %>%
-          hot_table(stretchH = "all") %>%
-          hot_context_menu(allowRowEdit = TRUE, allowColEdit = FALSE)
-      }
       insertTab(inputId = "tabs",
                 tabPanel(planetary_data()$planets$name[i], 
                          card(card_header("Landmasses"),  eDTOutput(paste("landmass", i, sep=""))), 
                          card(card_header("Satellites"), eDTOutput(paste("satellite", i, sep=""))), 
-                         card(card_header("Planetary Events"), events)))
+                         card(card_header("Planetary Events"), eDTOutput(paste("planetary_events", i, sep="")))))
       tab_names <- c(tab_names, planetary_data()$planets$name[i])
     }
   })
@@ -164,6 +174,13 @@ server <- function(input, output) {
           planetary_system$satellites[i] <- list(NULL)
         } else {
           planetary_system$satellites[[i]] <- modifiedSatellites()[[i]]$result()
+        }
+      }
+      for(i in 1:length(planetary_system$planetary_events)) {
+        if(is.null(modifiedPlanetaryEvents()[[i]])) {
+          planetary_system$planetary_events[i] <- list(NULL)
+        } else {
+          planetary_system$planetary_events[[i]] <- modifiedPlanetaryEvents()[[i]]$result()
         }
       }
       
