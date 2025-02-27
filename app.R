@@ -14,6 +14,18 @@ library(dplyr)
 library(rhandsontable)
 library(editbl)
 
+# the app converts all the missing values to empty strings - we need to 
+# convert them back
+convert_missing <- function(tbl) {
+  tbl <- tbl |> mutate(across(everything(), function(x) {
+    if(is.character(x)) {
+      return(na_if(x, ""))
+    } else {
+      return(x)
+    }
+  }))
+}
+
 tab_names <- c()
 
 # Define UI for application that draws a histogram
@@ -160,28 +172,28 @@ server <- function(input, output) {
     },
     content = function(file) {
       planetary_system <- planetary_data()
-      planetary_system$system <- modifiedPlanetarySystem()$result()
-      planetary_system$system_events <- modifiedSystemEvents()$result()
-      planetary_system$planets <- modifiedPlanets()$result()
+      planetary_system$system <- convert_missing(modifiedPlanetarySystem()$result())
+      planetary_system$system_events <- convert_missing(modifiedSystemEvents()$result())
+      planetary_system$planets <- convert_missing(modifiedPlanets()$result())
       for(i in 1:length(planetary_system$landmasses)) {
         if(is.null(modifiedLandmasses()[[i]])) {
           planetary_system$landmasses[i] <- list(NULL)
         } else {
-          planetary_system$landmasses[[i]] <- modifiedLandmasses()[[i]]$result()
+          planetary_system$landmasses[[i]] <- convert_missing(modifiedLandmasses()[[i]]$result())
         }
       }
       for(i in 1:length(planetary_system$satellites)) {
         if(is.null(modifiedSatellites()[[i]])) {
           planetary_system$satellites[i] <- list(NULL)
         } else {
-          planetary_system$satellites[[i]] <- modifiedSatellites()[[i]]$result()
+          planetary_system$satellites[[i]] <- convert_missing(modifiedSatellites()[[i]]$result())
         }
       }
       for(i in 1:length(planetary_system$planetary_events)) {
         if(is.null(modifiedPlanetaryEvents()[[i]])) {
           planetary_system$planetary_events[i] <- list(NULL)
         } else {
-          planetary_system$planetary_events[[i]] <- modifiedPlanetaryEvents()[[i]]$result()
+          planetary_system$planetary_events[[i]] <- convert_missing(modifiedPlanetaryEvents()[[i]]$result())
         }
       }
       
