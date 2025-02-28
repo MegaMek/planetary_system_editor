@@ -65,6 +65,7 @@ server <- function(input, output) {
   modifiedSatellites <- reactiveVal()
   modifiedPlanetaryEvents <- reactiveVal()
   tab_names <- reactiveVal()
+  descriptions <- reactiveVal()
   
   observe({
     req(planetary_data())
@@ -85,8 +86,18 @@ server <- function(input, output) {
                                             ordering = FALSE,
                                             autoFill = list(update =FALSE, focus = "focus"),
                                             buttons = list("add","undo", "redo", "save"))))
+    planets <- planetary_data()$planets
+    if('desc' %in% colnames(planets)) {
+      desc <- planets$desc
+      desc <- ifelse(is.na(desc), '', desc)
+      descriptions(desc)
+      planets <- planets |>
+        select(!desc)
+    } else {
+      descriptions(NULL)
+    }
     modifiedPlanets(eDT(id = 'planets', 
-                        data = planetary_data()$planets,
+                        data = planets,
                         options = list(dom = 'Bt', 
                                        keys = TRUE,
                                        ordering = FALSE,
@@ -157,6 +168,8 @@ server <- function(input, output) {
     for(i in 1:n) {
       insertTab(inputId = "tabs",
                 tabPanel(planetary_data()$planets$name[i], 
+                         card(card_header("Description"), textAreaInput(paste("desc", i, sep=""), NULL, descriptions()[i], 
+                                                                        height = "200px", width = "100%", resize = "both")),
                          card(card_header("Landmasses"),  eDTOutput(paste("landmass", i, sep=""))), 
                          card(card_header("Satellites"), eDTOutput(paste("satellite", i, sep=""))), 
                          card(card_header("Planetary Events"), eDTOutput(paste("planetary_events", i, sep="")))))
@@ -174,6 +187,15 @@ server <- function(input, output) {
       planetary_system$system <- convert_missing(modifiedPlanetarySystem()$result())
       planetary_system$system_events <- convert_missing(modifiedSystemEvents()$result())
       planetary_system$planets <- convert_missing(modifiedPlanets()$result())
+      # add back in descriptions
+      desc <- rep(NA, nrow(planetary_system$planets))
+      for(i in 1:nrow(planetary_system$planets)) {
+        x <- input[[paste("desc", i, sep="")]]
+        if(x != "") {
+          desc[i] <- x
+        }
+      }
+      planetary_system$planets$desc <- desc
       for(i in 1:length(planetary_system$landmasses)) {
         if(is.null(modifiedLandmasses()[[i]])) {
           planetary_system$landmasses[i] <- list(NULL)
