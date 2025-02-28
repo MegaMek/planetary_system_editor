@@ -26,8 +26,6 @@ convert_missing <- function(tbl) {
   }))
 }
 
-tab_names <- c()
-
 # Define UI for application that draws a histogram
 ui <- page_sidebar(
   title = "Planetary Data Editor",
@@ -66,7 +64,7 @@ server <- function(input, output) {
   modifiedLandmasses <- reactiveVal()
   modifiedSatellites <- reactiveVal()
   modifiedPlanetaryEvents <- reactiveVal()
-  
+  tab_names <- reactiveVal()
   
   observe({
     req(planetary_data())
@@ -151,11 +149,11 @@ server <- function(input, output) {
   observeEvent(input$upload, {
     
     # remove old tabs
-    for(tab_name in tab_names) {
+    for(tab_name in tab_names()) {
       removeTab(inputId = "tabs", target = tab_name)
     }
-    tab_names <- c()
     n <- nrow(planetary_data()$planets)
+    tab_names <- c()
     for(i in 1:n) {
       insertTab(inputId = "tabs",
                 tabPanel(planetary_data()$planets$name[i], 
@@ -164,6 +162,7 @@ server <- function(input, output) {
                          card(card_header("Planetary Events"), eDTOutput(paste("planetary_events", i, sep="")))))
       tab_names <- c(tab_names, planetary_data()$planets$name[i])
     }
+    tab_names(tab_names)
   })
   
   output$download <- downloadHandler(
