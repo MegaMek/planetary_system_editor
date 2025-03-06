@@ -11,7 +11,7 @@ library(bslib)
 library(shiny)
 library(megamekR)
 library(dplyr)
-library(rhandsontable)
+library(stringr)
 library(editbl)
 
 # the app converts all the missing values to empty strings - we need to 
