@@ -13,6 +13,7 @@ library(megamekR)
 library(dplyr)
 library(stringr)
 library(editbl)
+library(janitor)
 
 # the app converts all the missing values to empty strings - we need to 
 # convert them back
@@ -180,7 +181,8 @@ server <- function(input, output) {
   
   output$download <- downloadHandler(
     filename = function() {
-      "test.yml"
+      paste(make_clean_names(planetary_data()$system$id, case = "big_camel"),
+            "yml", sep=".")
     },
     content = function(file) {
       planetary_system <- planetary_data()
